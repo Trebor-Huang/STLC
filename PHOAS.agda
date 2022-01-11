@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --without-K --postfix-projections #-}
+{-# OPTIONS --postfix-projections #-}
 
 module PHOAS where
 open import Preliminaries

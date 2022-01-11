@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --without-K --postfix-projections #-}
+{-# OPTIONS --postfix-projections #-}
 
 module Untyped.ChurchRosser where
 open import Preliminaries
@@ -75,7 +75,7 @@ private  -- A reflection data structure
     view (ƛ r) rewrite view r = refl
     view (ƛ̅ r) rewrite view r = refl
     view (r ∙ s) rewrite view r | view s = refl
-
+{-
 
 -- For every single step reduction, we can mark the redex:
 mark : ∀ {M N : Λ n} -> M ⟶₁ N -> Λ̅ n
@@ -136,7 +136,13 @@ mark (lam r) = ƛ mark r
     = mapₜ appᵣ_          (φred N)
     ⁀ mapₜ (appₗ_ ∘ lam_) (φred M)
     ⁀ begin _ to _ by red β
+-}
 
+open Hom
+Hom⌊⌋ : Hom 𝓣̅ 𝓣 ⌊_⌋
+Hom⌊⌋ = {!   !}
+
+{-
 -- Now we set off to define a reduction relation on Λ̅
 infix 2 _↝̅_ _⟶̅₁_ _⟶̅_
 data _↝̅_ {n} : Λ̅ n -> Λ̅ n -> Set where
@@ -156,13 +162,9 @@ _⟶̅_ = Trans _⟶̅₁_
 
 red₁⌊_⌋ : M̅ ⟶̅₁ N̅ -> ⌊ M̅ ⌋ ⟶₁ ⌊ N̅ ⌋
 red₁⌊ red β ⌋ = {!   !}
--- Here we need to prove a commutation theorem
--- that substitutions commute with ⌊_⌋.
--- This is true because ⌊_⌋ modifies the term "in-place".
--- Therefore we might try to abstract this using
--- the "Semantics" record in G. Allais' paper
 red₁⌊ red β̅ ⌋ = {!   !}
 red₁⌊ appₗ r ⌋ = appₗ red₁⌊ r ⌋
 red₁⌊ appᵣ r ⌋ = appᵣ red₁⌊ r ⌋
 red₁⌊ lam r ⌋ = lam red₁⌊ r ⌋
 red₁⌊ l̅am r ⌋ = lam red₁⌊ r ⌋
+-}

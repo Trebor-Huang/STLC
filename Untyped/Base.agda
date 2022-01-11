@@ -1,5 +1,3 @@
-{-# OPTIONS --safe --without-K #-}
-
 module Untyped.Base where
 open import Preliminaries
 open import Scoped

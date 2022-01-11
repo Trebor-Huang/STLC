@@ -1,5 +1,3 @@
-{-# OPTIONS --safe --without-K #-}
-
 module Preliminaries where
 open import Agda.Primitive
 
@@ -83,3 +81,19 @@ mapₜ : ∀ {ℓ ℓ'} {A : Set ℓ} {_~>_ : A -> A -> Set ℓ'}
     -> ∀ {a a'} -> Trans _~>_ a a' -> Trans _⟶_ (f a) (f a')
 mapₜ F (begin _) = begin _
 mapₜ F (R to _ by r) = mapₜ F R to _ by F r
+
+postulate
+    funext : ∀ {ℓ ℓ'} {A : Set ℓ} {B : A -> Set ℓ'}
+        -> {f g : (a : A) -> B a}
+        -> (∀ a -> f a ≡ g a)
+        -> f ≡ g
+
+    funext' : ∀ {ℓ ℓ'} {A : Set ℓ} {B : A -> Set ℓ'}
+        -> {f g : {a : A} -> B a}
+        -> (∀ a -> f {a} ≡ g {a})
+        -> _≡_ {A = {a : A} -> B a} f g
+    -- Fun challenge: These two can actually be reduced to one.
+    -- Try proving that they are equivalent!
+
+    -- The answers are located at
+    -- https://ice1000.org/2021/03-02-AgdaEtaFunc.html
