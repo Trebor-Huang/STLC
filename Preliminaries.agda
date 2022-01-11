@@ -25,6 +25,10 @@ symm : ∀ {ℓ} {A : Set ℓ} {a a' : A}
     -> a ≡ a' -> a' ≡ a
 symm refl = refl
 
+transp : ∀ {ℓ} {A B : Set ℓ}
+    -> A ≡ B -> A -> B
+transp refl a = a
+
 data List {ℓ} (A : Set ℓ) : Set ℓ where
     ∅ : List A
     _◂_ : List A -> A -> List A
@@ -48,7 +52,7 @@ id : ∀ {ℓ} {A : Set ℓ} -> A -> A
 id a = a
 {-# INLINE id #-}
 
-infixl 1 _∘_
+infixl 3 _∘_
 _∘_ : ∀ {ℓ ℓ' ℓ''}
     -> {A : Set ℓ} {B : Set ℓ'} {C : B -> Set ℓ''}
     -> (g : (b : B) -> C b) (f : A -> B)

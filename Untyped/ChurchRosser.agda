@@ -75,7 +75,6 @@ private  -- A reflection data structure
     view (ƛ r) rewrite view r = refl
     view (ƛ̅ r) rewrite view r = refl
     view (r ∙ s) rewrite view r | view s = refl
-{-
 
 -- For every single step reduction, we can mark the redex:
 mark : ∀ {M N : Λ n} -> M ⟶₁ N -> Λ̅ n
@@ -136,13 +135,47 @@ mark (lam r) = ƛ mark r
     = mapₜ appᵣ_          (φred N)
     ⁀ mapₜ (appₗ_ ∘ lam_) (φred M)
     ⁀ begin _ to _ by red β
--}
 
-open Hom
-Hom⌊⌋ : Hom 𝓣̅ 𝓣 ⌊_⌋
-Hom⌊⌋ = {!   !}
+private module _ where
+    open Hom
+    hmap : ∀ {𝒲} ⦃ 𝒲ᶜ : Weakening 𝒲 ⦄ (δ : [ 𝒲 => 𝓣̅ ])
+        {Γ Δ} {σ : (𝓥 => 𝒲) Γ Δ} {τ} (i : 𝓣̅ Γ τ)
+        -> ⌊ mapᵥ δ σ i ⌋ ≡ mapᵥ (⌊_⌋ ∘ δ) σ ⌊ i ⌋
+    hmap δ (v x) = refl
+    hmap δ (ƛ i) = cong ^_ (hmap δ i)
+    hmap δ (ƛ̅ i) = cong ^_ (hmap δ i)
+    hmap δ {σ = σ} (i ∙ j)
+        rewrite hmap δ {σ = σ} i | hmap δ {σ = σ} j = refl
 
-{-
+    private instance
+        _ : ⦃ Stable 𝒞 ⦄ -> Weakening 𝒞
+        _ = 𝒞ʷ
+
+    H↕ : (δ : [ 𝓣̅ => 𝓣̅ ]) (δ' : [ 𝓣 => 𝓣 ])
+        -> (eq : ∀ Γ σ i -> ⌊ δ {Γ = Γ} {σ = σ} i ⌋ ≡ δ' ⌊ i ⌋)
+        -> (wk : ∀ {Γ Δ} (σ : (𝓥 => 𝓣̅) Γ Δ) {τ τ' : ⊤}
+            -> ⌊_⌋ ∘ (σ ʷ) ≡ (⌊_⌋ ∘ σ) ʷ)
+        -> ∀ {Γ Δ} {σ : (𝓥 => 𝓣̅) Γ Δ} {τ} (i : 𝓣̅ Γ τ)
+        -> ⌊ mapᵥ δ σ i ⌋ ≡ (mapᵥ δ' (⌊_⌋ ∘ σ)) ⌊ i ⌋
+    H↕ δ δ' eq wk (v x) = eq _ _ _
+    H↕ δ δ' eq wk {σ = σ} (ƛ t)
+        = cong ^_  -- This must be used for Agda unfolds ⊤ too eagerly, which hinders unification.
+            (transp (cong (\ u -> ⌊ mapᵥ δ (σ ʷ) t ⌋ ≡ mapᵥ δ' u ⌊ t ⌋)
+                (wk σ)) (H↕ δ δ' eq wk t))
+    H↕ δ δ' eq wk {σ = σ} (ƛ̅ t)
+        = cong ^_
+            (transp (cong (\ u -> ⌊ mapᵥ δ (σ ʷ) t ⌋ ≡ mapᵥ δ' u ⌊ t ⌋)
+                (wk σ)) (H↕ δ δ' eq wk t))
+    H↕ δ δ' eq wk {σ = σ} (t ∙ s)
+        rewrite H↕ δ δ' eq wk {σ = σ} t
+        | H↕ δ δ' eq wk {σ = σ} s = refl
+
+instance
+    Hom⌊⌋ : Hom 𝓣̅ 𝓣 ⌊_⌋
+    Hom⌊⌋ .Hvar = refl
+    Hom⌊⌋ .Hmapᵥ = hmap
+    Hom⌊⌋ .Hmap↕ = H↕
+
 -- Now we set off to define a reduction relation on Λ̅
 infix 2 _↝̅_ _⟶̅₁_ _⟶̅_
 data _↝̅_ {n} : Λ̅ n -> Λ̅ n -> Set where
@@ -161,10 +194,11 @@ _⟶̅_ : Λ̅ n -> Λ̅ n -> Set
 _⟶̅_ = Trans _⟶̅₁_
 
 red₁⌊_⌋ : M̅ ⟶̅₁ N̅ -> ⌊ M̅ ⌋ ⟶₁ ⌊ N̅ ⌋
-red₁⌊ red β ⌋ = {!   !}
-red₁⌊ red β̅ ⌋ = {!   !}
+red₁⌊_⌋ {M̅ = (ƛ M̅) ∙ N̅} (red β)
+    rewrite (Hsubst𝕫/ N̅) M̅ = red β
+red₁⌊_⌋ {M̅ = (ƛ̅ M̅) ∙ N̅} (red β̅)
+    rewrite (Hsubst𝕫/ N̅) M̅ = red β
 red₁⌊ appₗ r ⌋ = appₗ red₁⌊ r ⌋
 red₁⌊ appᵣ r ⌋ = appᵣ red₁⌊ r ⌋
 red₁⌊ lam r ⌋ = lam red₁⌊ r ⌋
 red₁⌊ l̅am r ⌋ = lam red₁⌊ r ⌋
--}
