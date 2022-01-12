@@ -1,6 +1,9 @@
+{-# OPTIONS --postfix-projections #-}
+
 module Untyped.Base where
 open import Preliminaries
-open import Scoped
+import Substitution
+open Substitution ⊤
 
 -- Untyped is unityped
 data 𝓣 : (Γ : List ⊤) (uni-type : ⊤) -> Set where
@@ -33,19 +36,29 @@ infixl 30 _⁺
 Ω : Λ ∅
 Ω = ω ∙ ω
 
--- Defines a Stable instance so we can seamlessly manipulate syntax with binding
+-- Defines a Syntax instance so we can seamlessly manipulate syntax with binding
 private
-    map : ⦃ Weakening 𝒲 ⦄ -> [ 𝒲 => 𝓣 ] -> {Γ Δ : List ⊤} -> (𝓥 => 𝒲) Γ Δ -> (𝓣 => 𝓣) Γ Δ
-    map 𝔳 δ (v i) = 𝔳 (δ i)
-    map 𝔳 δ (^ t) = ^ map 𝔳 (δ ʷ) t
-    map 𝔳 δ (t ∙ s) = (map 𝔳 δ t) ∙ (map 𝔳 δ s)
-
+    𝓣ˢmapᵥ : ⦃ Weakening 𝒲 ⦄
+        -> [ 𝒲 => 𝓣 ]
+        -> ⟦ 𝓥 => 𝒲 ==> 𝓣 => 𝓣 ⟧
+    𝓣ˢmapᵥ 𝑓 σ (v x) = 𝑓 (σ x)
+    𝓣ˢmapᵥ 𝑓 σ (^ t) = ^ 𝓣ˢmapᵥ 𝑓 (σ ≪ _) t
+    𝓣ˢmapᵥ 𝑓 σ (t ∙ s) = 𝓣ˢmapᵥ 𝑓 σ t ∙ 𝓣ˢmapᵥ 𝑓 σ s
 instance
-    𝓣ˢ : Stable 𝓣
-    Stable.var 𝓣ˢ = v
-    Stable.mapᵥ 𝓣ˢ = map
-
-open Stable 𝓣ˢ
+    𝓣ˢ : Syntax 𝓣
+    𝓣ˢ .var = v
+    𝓣ˢ .mapᵥ = 𝓣ˢmapᵥ
+    𝓣ˢ .mapᵥ-var σ x = refl
+    𝓣ˢ .mapᵥ-comp {𝒲} 𝑓 𝐹 wk eq = 𝓣ˢmapᵥ-comp
+        where
+            𝓣ˢmapᵥ-comp : ∀ {Γ Δ Ξ i}
+                (σ : (𝓥 => 𝒲) Γ Δ) (τ : (𝓥 => 𝒲) Ξ Γ) (t : 𝓣 Ξ i)
+                -> 𝓣ˢmapᵥ 𝑓 σ (𝓣ˢmapᵥ 𝑓 τ t) ≡ 𝓣ˢmapᵥ 𝑓 (𝐹 σ ∘ τ) t
+            𝓣ˢmapᵥ-comp σ τ (v x) = eq σ (τ x)
+            𝓣ˢmapᵥ-comp σ τ (^ t) = cong ^_ {! 𝓣ˢmapᵥ-comp (σ ≪ _) (τ ≪ _) t !}
+            𝓣ˢmapᵥ-comp σ τ (t ∙ s)
+                rewrite 𝓣ˢmapᵥ-comp σ τ t | 𝓣ˢmapᵥ-comp σ τ s = refl
+{-
 
 private variable
     n : List ⊤
@@ -95,4 +108,4 @@ SNKI = ~> λ { (red β) -> ~> λ { (lam lam red ()) }
 -- Some terms are not strongly normalizing
 ¬SNΩ : SN Ω -> ⊥
 ¬SNΩ (~> r) = ¬SNΩ (r (red β))
-
+-}
