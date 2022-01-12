@@ -49,9 +49,24 @@ record Stable (𝒞 : I -scoped) : Set1 where
         var : [ 𝓥 => 𝒞 ]
         mapᵥ : ⦃ Weakening 𝒲 ⦄ -> [ 𝒲 => 𝒞 ]
             -> ⟦ 𝓥 => 𝒲 ==> 𝒞 => 𝒞 ⟧
+        coh : ⦃ _ : Weakening 𝒲 ⦄
+            -> (𝐹 : [ 𝒲 => 𝒞 ]) (ℑ : ⟦ 𝓥 => 𝒲 ==> 𝒲 => 𝒲 ⟧)
+            -> (eq : ∀ {Γ Δ} (σ : (𝓥 => 𝒲) Γ Δ) {i : I} (t : 𝒲 Γ i)
+                -> 𝐹 (ℑ σ t) ≡ mapᵥ 𝐹 σ (𝐹 t))
+            -> ∀ {Γ Δ Θ} (σ : (𝓥 => 𝒲) Γ Δ) (θ : (𝓥 => 𝒲) Θ Γ) {i : I} (t : 𝒞 Θ i)
+            -> mapᵥ 𝐹 σ (mapᵥ 𝐹 θ t) ≡ mapᵥ 𝐹 (ℑ σ ∘ θ) t
+
+    𝕫/_ : 𝒞 Γ σ -> (𝓥 => 𝒞) (Γ ◂ σ) Γ
+    (𝕫/ t) 𝕫 = t
+    (𝕫/ t) (𝕤 i) = var i
+    infixr 6 𝕫/_
 
     rename : ⟦ 𝓥 => 𝓥 ==> 𝒞 => 𝒞 ⟧
     rename = mapᵥ var
+
+    rename-comp : (σ : (𝓥 => 𝓥) Γ Δ) (θ : (𝓥 => 𝓥) Θ Γ) {i : I} (t : 𝒞 Θ i)
+        -> rename σ (rename θ t) ≡ rename (σ ∘ θ) t
+    rename-comp σ θ t = coh var id {! cohᵥ σ θ t  !} σ θ t
 
     𝒞ʷ : Weakening 𝒞
     𝒞ʷ .weaken σ 𝕫 = var 𝕫
@@ -61,10 +76,10 @@ record Stable (𝒞 : I -scoped) : Set1 where
     subst = mapᵥ id
         where instance _ = 𝒞ʷ
 
-    𝕫/_ : 𝒞 Γ σ -> (𝓥 => 𝒞) (Γ ◂ σ) Γ
-    (𝕫/ t) 𝕫 = t
-    (𝕫/ t) (𝕤 i) = var i
-    infixr 6 𝕫/_
+    subst-comp : (σ : (𝓥 => 𝒞) Γ Δ) (θ : (𝓥 => 𝒞) Θ Γ) {i : I} (t : 𝒞 Θ i)
+        -> subst σ (subst θ t) ≡ subst (subst σ ∘ θ) t
+    subst-comp σ θ t = coh id subst (\ _ _ -> refl) σ θ t
+        where instance _ = 𝒞ʷ
 
 open Stable ⦃...⦄
 
@@ -134,5 +149,4 @@ record Hom (𝒞 𝒟 : I -scoped) ⦃ 𝒞ˢ : Stable 𝒞 ⦄ ⦃ 𝒟ˢ : Sta
     Hsubst𝕫/_ : ∀ {Γ τ τ'} (t : 𝒞 Γ τ) (t' : 𝒞 (Γ ◂ τ) τ')
         -> f (subst (𝕫/ t) t') ≡ subst (𝕫/ f t) (f t')
     Hsubst𝕫/_ t t' rewrite Hsubst (𝕫/ t) t' | H𝕫/ t = refl
-
-open Hom ⦃...⦄ public
+open Hom ⦃...⦄

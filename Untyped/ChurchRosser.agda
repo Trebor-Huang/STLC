@@ -6,6 +6,7 @@ open import Scoped
 open import Untyped.Base
 
 open Stable ⦃...⦄
+open Hom ⦃...⦄
 
 private variable
     n n' : List ⊤
