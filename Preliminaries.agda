@@ -34,6 +34,15 @@ data List {ℓ} (A : Set ℓ) : Set ℓ where
     _◂_ : List A -> A -> List A
 infixr 10 _◂_
 
+data _×_ {ℓ ℓ'} (A : Set ℓ) (B : Set ℓ') : Set (ℓ ⊔ ℓ') where
+    ⟨_,_⟩ : A -> B -> A × B
+infixl 1 _×_
+
+data _+_ {ℓ ℓ'} (A : Set ℓ) (B : Set ℓ') : Set (ℓ ⊔ ℓ') where
+    ι₁ : A -> A + B
+    ι₂ : B -> A + B
+infixl 1 _+_
+
 record Exists {ℓ ℓ'} (A : Set ℓ) (P : A -> Set ℓ') : Set (ℓ ⊔ ℓ') where
     constructor exists
     field

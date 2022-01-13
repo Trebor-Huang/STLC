@@ -60,17 +60,7 @@ record Syntax (𝒞 : Scope) : Set1 where
         mapᵥ : ⦃ Weakening 𝒲 ⦄
             -> [ 𝒲 => 𝒞 ]
             -> ⟦ 𝓥 => 𝒲 ==> 𝒞 => 𝒞 ⟧
-        mapᵥ-var : (σ : (𝓥 => 𝓥) Γ Δ) (v : 𝓥 Γ i)
-            -> mapᵥ var σ (var v) ≡ var (σ v)
-        mapᵥ-comp : ⦃ _ : Weakening 𝒲 ⦄
-            -> (𝑓 : [ 𝒲 => 𝒞 ]) (𝐹 : ⟦ 𝓥 => 𝒲 ==> 𝒲 => 𝒲 ⟧)
-            -> (wk : ∀ {Γ Δ Ξ i j} (σ : (𝓥 => 𝒲) Γ Δ) (τ : (𝓥 => 𝒲) Ξ Γ) (t : 𝓥 (Ξ ◂ i) j)
-                -> ((𝐹 σ ∘ τ) ≪ i) t ≡ 𝐹 (σ ≪ i) ((τ ≪ i) t))
-            -> (eq : ∀ {Γ Δ i} (σ : (𝓥 => 𝒲) Γ Δ) (t : 𝒲 Γ i)
-                -> mapᵥ 𝑓 σ (𝑓 t) ≡ 𝑓 (𝐹 σ t))
-            -> ∀ {Γ Δ Ξ i} (σ : (𝓥 => 𝒲) Γ Δ) (τ : (𝓥 => 𝒲) Ξ Γ) (t : 𝒞 Ξ i)
-                -> mapᵥ 𝑓 σ (mapᵥ 𝑓 τ t) ≡ mapᵥ 𝑓 (𝐹 σ ∘ τ) t
-{-
+
     𝕫/_ : 𝒞 Γ i -> (𝓥 => 𝒞) (Γ ◂ i) Γ
     (𝕫/ t) 𝕫 = t
     (𝕫/ t) (𝕤 v) = var v
@@ -79,17 +69,41 @@ record Syntax (𝒞 : Scope) : Set1 where
     rename : ⟦ 𝓥 => 𝓥 ==> 𝒞 => 𝒞 ⟧
     rename = mapᵥ var
 
-    rename-comp : (σ : (𝓥 => 𝓥) Γ Δ) (θ : (𝓥 => 𝓥) Θ Γ) (t : 𝒞 Θ i)
-        -> rename σ (rename θ t) ≡ rename (σ ∘ θ) t
-    rename-comp = mapᵥ-comp var id 𝓥-compʷ mapᵥ-var
-
     Syntaxʷ : Weakening 𝒞
     Syntaxʷ .weaken σ i 𝕫 = var 𝕫
     Syntaxʷ .weaken σ i (𝕤 v) = rename 𝕤_ (σ v)
-    private instance _ = Syntaxʷ
 
     subst : ⟦ 𝓥 => 𝒞 ==> 𝒞 => 𝒞 ⟧
     subst = mapᵥ id
+        where instance _ = Syntaxʷ
+open Syntax ⦃...⦄ public
+
+instance
+    𝓥ˢ : Syntax 𝓥
+    𝓥ˢ .var = id
+    𝓥ˢ .mapᵥ 𝑓 σ v = 𝑓 (σ v)
+
+record Stable (𝒞 : Scope) ⦃ 𝒞ˢ : Syntax 𝒞 ⦄ : Set₁ where
+    field
+        mapᵥ-comp : ⦃ 𝒲ʷ : Weakening 𝒲 ⦄
+            -> ⦃ 𝒟ˢ : Syntax 𝒟 ⦄ 
+            -> (𝑔 : [ 𝒟 => 𝒞 ])
+            -> (𝑓 : [ 𝒲 => 𝒟 ])
+            -> ∀ {Γ Δ Θ i}
+            -> (σ : (𝓥 => 𝒲) Γ Δ) (δ : (𝓥 => 𝒟) Θ Γ) (t : 𝒞 Θ i)
+            -> let instance _ = Syntaxʷ ⦃ 𝒟ˢ ⦄ in
+                mapᵥ (𝑔 ∘ 𝑓) σ (mapᵥ 𝑔 δ t) ≡ mapᵥ 𝑔 (mapᵥ 𝑓 σ ∘ δ) t
+open Stable ⦃...⦄ public
+
+instance
+    𝓥ₛ : Stable 𝓥
+    𝓥ₛ .mapᵥ-comp 𝑔 𝑓 σ δ v = {!   !}
+
+{-
+
+    rename-comp : (σ : (𝓥 => 𝓥) Γ Δ) (θ : (𝓥 => 𝓥) Θ Γ) (t : 𝒞 Θ i)
+        -> rename σ (rename θ t) ≡ rename (σ ∘ θ) t
+    rename-comp = mapᵥ-comp var id 𝓥-compʷ mapᵥ-var
 
     subst-compʷ : (σ : (𝓥 => 𝒞) Γ Δ) (τ : (𝓥 => 𝒞) Ξ Γ) (v : 𝓥 (Ξ ◂ i) j)
         -> ((subst σ ∘ τ) ≪ i) v ≡ subst (σ ≪ i) ((τ ≪ i) v)
@@ -106,4 +120,4 @@ record Hom (𝒞 𝒟 : Scope) ⦃ 𝒞ˢ : Syntax 𝒞 ⦄ ⦃ 𝒟ˢ : Syntax 
     field
         Hvar : (v : 𝓥 Γ i) -> f (var v) ≡ var v
 open Hom ⦃...⦄ public
--}
+-} 

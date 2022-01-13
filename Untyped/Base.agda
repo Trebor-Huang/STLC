@@ -48,16 +48,12 @@ instance
     𝓣ˢ : Syntax 𝓣
     𝓣ˢ .var = v
     𝓣ˢ .mapᵥ = 𝓣ˢmapᵥ
-    𝓣ˢ .mapᵥ-var σ x = refl
-    𝓣ˢ .mapᵥ-comp {𝒲} 𝑓 𝐹 wk eq = 𝓣ˢmapᵥ-comp
-        where
-            𝓣ˢmapᵥ-comp : ∀ {Γ Δ Ξ i}
-                (σ : (𝓥 => 𝒲) Γ Δ) (τ : (𝓥 => 𝒲) Ξ Γ) (t : 𝓣 Ξ i)
-                -> 𝓣ˢmapᵥ 𝑓 σ (𝓣ˢmapᵥ 𝑓 τ t) ≡ 𝓣ˢmapᵥ 𝑓 (𝐹 σ ∘ τ) t
-            𝓣ˢmapᵥ-comp σ τ (v x) = eq σ (τ x)
-            𝓣ˢmapᵥ-comp σ τ (^ t) = cong ^_ {! 𝓣ˢmapᵥ-comp (σ ≪ _) (τ ≪ _) t !}
-            𝓣ˢmapᵥ-comp σ τ (t ∙ s)
-                rewrite 𝓣ˢmapᵥ-comp σ τ t | 𝓣ˢmapᵥ-comp σ τ s = refl
+
+    𝓣ₛ : Stable 𝓣
+    𝓣ₛ .mapᵥ-comp 𝑔 𝑓 σ δ (v x) = {!   !}
+    𝓣ₛ .mapᵥ-comp 𝑔 𝑓 σ δ (^ t) = {!   !}
+    𝓣ₛ .mapᵥ-comp 𝑔 𝑓 σ δ (t ∙ s) = {!   !}
+
 {-
 
 private variable
