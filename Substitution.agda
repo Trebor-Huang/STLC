@@ -1,4 +1,4 @@
-{-# OPTIONS --postfix-projections #-}
+{-# OPTIONS --postfix-projections --show-implicit #-}
 module Substitution (I : Set) where
 open import Preliminaries
 open import Agda.Primitive
@@ -34,6 +34,7 @@ _==>_ : Morph -> Morph -> Morph
 ⟦ ℭ ⟧ = ∀ {Γ Δ} -> ℭ Γ Δ
 
 record Weakening (𝒞 : Scope) : Set where
+    constructor pack-weaken
     field
         weaken : (𝓥 => 𝒞) Γ Δ -> ∀ iʷ -> (𝓥 => 𝒞) (Γ ◂ iʷ) (Δ ◂ iʷ)
 open Weakening ⦃...⦄ public
@@ -83,21 +84,32 @@ instance
     𝓥ˢ .var = id
     𝓥ˢ .mapᵥ 𝑓 σ v = 𝑓 (σ v)
 
+-- A coherence theorem
+𝓥ˢʷ : Syntaxʷ ⦃ 𝓥ˢ ⦄ ≡ 𝓥ʷ
+𝓥ˢʷ = cong pack-weaken (
+    funext' λ Γ ->
+    funext' λ Δ ->
+    funext  λ ρ ->
+    funext  λ j ->
+    funext' λ i ->
+    funext  λ {  𝕫    -> refl
+              ; (𝕤 v) -> refl })
+
 record Stable (𝒞 : Scope) ⦃ 𝒞ˢ : Syntax 𝒞 ⦄ : Set₁ where
     field
         mapᵥ-comp : ⦃ 𝒲ʷ : Weakening 𝒲 ⦄
             -> ⦃ 𝒟ˢ : Syntax 𝒟 ⦄ 
             -> (𝑔 : [ 𝒟 => 𝒞 ])
             -> (𝑓 : [ 𝒲 => 𝒟 ])
-            -> ∀ {Γ Δ Θ i}
-            -> (σ : (𝓥 => 𝒲) Γ Δ) (δ : (𝓥 => 𝒟) Θ Γ) (t : 𝒞 Θ i)
-            -> let instance _ = Syntaxʷ ⦃ 𝒟ˢ ⦄ in
-                mapᵥ (𝑔 ∘ 𝑓) σ (mapᵥ 𝑔 δ t) ≡ mapᵥ 𝑔 (mapᵥ 𝑓 σ ∘ δ) t
-open Stable ⦃...⦄ public
+            -> ∀ {Γ Δ Θ}
+            -> (σ : (𝓥 => 𝒲) Γ Δ) (δ : (𝓥 => 𝒟) Θ Γ)
+            -> let instance _ = Syntaxʷ ⦃ 𝒟ˢ ⦄ in 
+            ∀ {i} (t : 𝒞 Θ i)
+                -> mapᵥ (𝑔 ∘ 𝑓) σ (mapᵥ 𝑔 δ t) ≡ mapᵥ 𝑔 (mapᵥ 𝑓 σ ∘ δ) t
 
-instance
-    𝓥ₛ : Stable 𝓥
-    𝓥ₛ .mapᵥ-comp 𝑔 𝑓 σ δ v = {!   !}
+rename-comp : ⦃ 𝒞ˢ : Syntax 𝒞 ⦄ (σ : (𝓥 => 𝓥) Γ Δ) (θ : (𝓥 => 𝓥) Θ Γ) (t : 𝒞 Θ i)
+    -> rename σ (rename θ t) ≡ rename (σ ∘ θ) t
+rename-comp σ θ t = {!  !}
 
 {-
 
@@ -120,4 +132,10 @@ record Hom (𝒞 𝒟 : Scope) ⦃ 𝒞ˢ : Syntax 𝒞 ⦄ ⦃ 𝒟ˢ : Syntax 
     field
         Hvar : (v : 𝓥 Γ i) -> f (var v) ≡ var v
 open Hom ⦃...⦄ public
--} 
+-}
+
+open Stable ⦃...⦄ public
+-- 𝑓 (σ (𝑔 (δ v))) ≡ mapᵥ 𝑓 σ (δ v)
+instance
+    𝓥ₛ : Stable 𝓥
+    𝓥ₛ .mapᵥ-comp 𝑔 𝑓 σ δ v = {!   !}
