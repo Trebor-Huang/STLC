@@ -12,6 +12,6 @@ open Psh 𝕋
 
 open Presheaf ⦃...⦄
 open Hom ⦃...⦄
-instance
-    𝕃 : ⦃ Presheaf 𝒞 ⦄ -> Presheaf ([_] ⊕ (𝒞 ⊗ 𝒞))
-    𝕃 = {!   !}
+
+𝕃 : (ℱ : List 𝕋 -> Set) -> (List 𝕋 -> Set)
+𝕃 ℱ Γ = [ Γ ] + ℱ Γ × ℱ Γ + ℱ Γ

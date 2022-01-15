@@ -1,4 +1,4 @@
-{-# OPTIONS --allow-unsolved-metas #-}
+{-# OPTIONS --postfix-projections #-}
 
 open import Preliminaries
 module Presheaf (I : Set) where
@@ -31,14 +31,15 @@ open Presheaf ⦃...⦄
 
 instance
     よ : Presheaf (Γ =>_)
-    Presheaf.mapₚ よ σ δ v = σ (δ v)
-    Presheaf.compₚ よ σ δ = refl
-    Presheaf.idₚ よ = refl
+    よ .mapₚ σ δ v = σ (δ v)
+    よ .compₚ σ δ = refl
+    よ .idₚ = refl
 
     Ι : Presheaf [_]
-    Presheaf.mapₚ Ι σ (exists v) = exists (σ v)
-    Presheaf.compₚ Ι σ δ = funext λ _ -> refl
-    Presheaf.idₚ Ι = funext λ _ -> refl
+    Ι .mapₚ σ (exists v) = exists (σ v)
+    Ι .compₚ σ δ = funext λ _ -> refl
+    Ι .idₚ = funext λ _ -> refl
+
 
 record Hom ⦃ _ : Presheaf 𝒞 ⦄ ⦃ _ : Presheaf 𝒟 ⦄
     (𝔉 : ∀ {Γ} -> 𝒞 Γ -> 𝒟 Γ) : Set where
@@ -49,26 +50,41 @@ open Hom ⦃...⦄
 instance
     よₕ : {σ : Θ => Δ}
         -> Hom ⦃ よ ⦄ ⦃ よ ⦄ (_∘ σ)
-    Hom.natural よₕ σ = refl
+    よₕ .natural σ = refl
 
 _⊕_ : (𝒞 𝒟 : List I -> Set) -> List I -> Set
 (𝒞 ⊕ 𝒟) Γ = 𝒞 Γ + 𝒟 Γ
 
 instance
     Psh⊕ : ⦃ Presheaf 𝒞 ⦄ -> ⦃ Presheaf 𝒟 ⦄ -> Presheaf (𝒞 ⊕ 𝒟)
-    Presheaf.mapₚ Psh⊕ σ (ι₁ x) = ι₁ (mapₚ σ x)
-    Presheaf.mapₚ Psh⊕ σ (ι₂ x) = ι₂ (mapₚ σ x)
-    Presheaf.compₚ Psh⊕ σ δ = funext λ { (ι₁ x) -> cong (λ u -> ι₁ (u x)) (compₚ σ δ)
-                                       ; (ι₂ x) -> cong (λ u -> ι₂ (u x)) (compₚ σ δ) }
-    Presheaf.idₚ Psh⊕ = funext λ { (ι₁ x) -> cong (λ u -> ι₁ (u x)) idₚ
-                                 ; (ι₂ x) -> cong (λ u -> ι₂ (u x)) idₚ }
+    Psh⊕ .mapₚ σ (ι₁ x) = ι₁ (mapₚ σ x)
+    Psh⊕ .mapₚ σ (ι₂ x) = ι₂ (mapₚ σ x)
+    Psh⊕ ⦃ 𝒞ᵖ ⦄ ⦃ 𝒟ᵖ ⦄ .compₚ σ δ = funext aux
+        where
+            aux : _
+            aux (ι₁ x) rewrite compₚ ⦃ 𝒞ᵖ ⦄ σ δ = refl
+            aux (ι₂ x) rewrite compₚ ⦃ 𝒟ᵖ ⦄ σ δ = refl
+    Psh⊕ ⦃ 𝒞ᵖ ⦄ ⦃ 𝒟ᵖ ⦄ .idₚ {Γ} = funext aux
+        where
+            aux : _
+            aux (ι₁ x) rewrite idₚ ⦃ 𝒞ᵖ ⦄ {Γ} = refl
+            aux (ι₂ x) rewrite idₚ ⦃ 𝒟ᵖ ⦄ {Γ} = refl
 
 _⊗_ : (𝒞 𝒟 : List I -> Set) -> List I -> Set
 (𝒞 ⊗ 𝒟) Γ = 𝒞 Γ × 𝒟 Γ
 
 instance
     Psh⊗ : ⦃ Presheaf 𝒞 ⦄ -> ⦃ Presheaf 𝒟 ⦄ -> Presheaf (𝒞 ⊗ 𝒟)
-    Presheaf.mapₚ Psh⊗ σ ⟨ x , y ⟩ = ⟨ mapₚ σ x , mapₚ σ y ⟩
-    Presheaf.compₚ Psh⊗ σ δ = funext {!   !}
-    Presheaf.idₚ Psh⊗ = funext {!   !}
-
+    Psh⊗ .mapₚ σ ⟨ c , d ⟩ = ⟨ mapₚ σ c , mapₚ σ d ⟩
+    Psh⊗ ⦃ 𝒞ᵖ ⦄ ⦃ 𝒟ᵖ ⦄ .compₚ σ δ = funext aux
+        where
+            aux : _
+            aux ⟨ c , d ⟩ rewrite
+                  compₚ ⦃ 𝒞ᵖ ⦄ σ δ
+                | compₚ ⦃ 𝒟ᵖ ⦄ σ δ = refl
+    Psh⊗ ⦃ 𝒞ᵖ ⦄ ⦃ 𝒟ᵖ ⦄ .idₚ {Γ} = funext aux
+        where
+            aux : _
+            aux ⟨ c , d ⟩ rewrite
+                  idₚ ⦃ 𝒞ᵖ ⦄ {Γ}
+                | idₚ ⦃ 𝒟ᵖ ⦄ {Γ} = refl
