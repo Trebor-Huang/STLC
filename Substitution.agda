@@ -1,4 +1,4 @@
-{-# OPTIONS --postfix-projections --show-implicit #-}
+{-# OPTIONS --postfix-projections #-}
 module Substitution (I : Set) where
 open import Preliminaries
 open import Agda.Primitive
@@ -20,7 +20,7 @@ infixr 100 𝕤_
 𝓥 = _∋_ -- alternative notation
 
 infix 4 _=>_  -- Raw categories
-_=>_ : (𝒱 𝒞 : Scope) -> (Γ Δ : List I) -> Set
+_=>_ : (𝒱 𝒞 : Scope) -> Morph
 (𝒱 => 𝒞) Γ Δ = ∀ {i} -> 𝒱 Γ i -> 𝒞 Δ i
 
 [_] : Morph -> Set
@@ -107,35 +107,3 @@ record Stable (𝒞 : Scope) ⦃ 𝒞ˢ : Syntax 𝒞 ⦄ : Set₁ where
             ∀ {i} (t : 𝒞 Θ i)
                 -> mapᵥ (𝑔 ∘ 𝑓) σ (mapᵥ 𝑔 δ t) ≡ mapᵥ 𝑔 (mapᵥ 𝑓 σ ∘ δ) t
 
-rename-comp : ⦃ 𝒞ˢ : Syntax 𝒞 ⦄ (σ : (𝓥 => 𝓥) Γ Δ) (θ : (𝓥 => 𝓥) Θ Γ) (t : 𝒞 Θ i)
-    -> rename σ (rename θ t) ≡ rename (σ ∘ θ) t
-rename-comp σ θ t = {!  !}
-
-{-
-
-    rename-comp : (σ : (𝓥 => 𝓥) Γ Δ) (θ : (𝓥 => 𝓥) Θ Γ) (t : 𝒞 Θ i)
-        -> rename σ (rename θ t) ≡ rename (σ ∘ θ) t
-    rename-comp = mapᵥ-comp var id 𝓥-compʷ mapᵥ-var
-
-    subst-compʷ : (σ : (𝓥 => 𝒞) Γ Δ) (τ : (𝓥 => 𝒞) Ξ Γ) (v : 𝓥 (Ξ ◂ i) j)
-        -> ((subst σ ∘ τ) ≪ i) v ≡ subst (σ ≪ i) ((τ ≪ i) v)
-    subst-compʷ {i = i} σ τ 𝕫 = {!   !}
-    subst-compʷ σ τ (𝕤 v) = {!   !}
-
-    subst-comp : (σ : (𝓥 => 𝒞) Γ Δ) (θ : (𝓥 => 𝒞) Θ Γ) (t : 𝒞 Θ i)
-        -> subst σ (subst θ t) ≡ subst (subst σ ∘ θ) t
-    subst-comp = mapᵥ-comp id subst subst-compʷ \ _ _ -> refl
-open Syntax ⦃...⦄ public
-
-record Hom (𝒞 𝒟 : Scope) ⦃ 𝒞ˢ : Syntax 𝒞 ⦄ ⦃ 𝒟ˢ : Syntax 𝒟 ⦄
-    (f : [ 𝒞 => 𝒟 ]) : Set₁ where
-    field
-        Hvar : (v : 𝓥 Γ i) -> f (var v) ≡ var v
-open Hom ⦃...⦄ public
--}
-
-open Stable ⦃...⦄ public
--- 𝑓 (σ (𝑔 (δ v))) ≡ mapᵥ 𝑓 σ (δ v)
-instance
-    𝓥ₛ : Stable 𝓥
-    𝓥ₛ .mapᵥ-comp 𝑔 𝑓 σ δ v = {!   !}

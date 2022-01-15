@@ -49,13 +49,6 @@ instance
     𝓣ˢ .var = v
     𝓣ˢ .mapᵥ = 𝓣ˢmapᵥ
 
-    𝓣ₛ : Stable 𝓣
-    𝓣ₛ .mapᵥ-comp 𝑔 𝑓 σ δ (v x) = {!   !}
-    𝓣ₛ .mapᵥ-comp 𝑔 𝑓 σ δ (^ t) = {!   !}
-    𝓣ₛ .mapᵥ-comp 𝑔 𝑓 σ δ (t ∙ s) = {!   !}
-
-{-
-
 private variable
     n : List ⊤
 
@@ -104,4 +97,3 @@ SNKI = ~> λ { (red β) -> ~> λ { (lam lam red ()) }
 -- Some terms are not strongly normalizing
 ¬SNΩ : SN Ω -> ⊥
 ¬SNΩ (~> r) = ¬SNΩ (r (red β))
--}

@@ -2,11 +2,9 @@
 
 module Untyped.ChurchRosser where
 open import Preliminaries
-open import Scoped
+import Substitution
+open Substitution ⊤
 open import Untyped.Base
-
-open Stable ⦃...⦄
-open Hom ⦃...⦄
 
 private variable
     n n' : List ⊤
@@ -24,13 +22,13 @@ infixr 10 ƛ_ ƛ̅_
 private
     map : ⦃ Weakening 𝒲 ⦄ -> [ 𝒲 => 𝓣̅ ] -> {Γ Δ : List ⊤} -> (𝓥 => 𝒲) Γ Δ -> (𝓣̅ => 𝓣̅) Γ Δ
     map 𝔳 δ (v i) = 𝔳 (δ i)
-    map 𝔳 δ (ƛ t) = ƛ map 𝔳 (δ ʷ) t
-    map 𝔳 δ (ƛ̅ t) = ƛ̅ map 𝔳 (δ ʷ) t
+    map 𝔳 δ (ƛ t) = ƛ map 𝔳 (δ ≪ _) t
+    map 𝔳 δ (ƛ̅ t) = ƛ̅ map 𝔳 (δ ≪ _) t
     map 𝔳 δ (t ∙ s) = (map 𝔳 δ t) ∙ (map 𝔳 δ s)
 instance
-    𝓣̅ˢ : Stable 𝓣̅
-    Stable.var 𝓣̅ˢ = v
-    Stable.mapᵥ 𝓣̅ˢ = map
+    𝓣̅ˢ : Syntax 𝓣̅
+    𝓣̅ˢ .var = v
+    𝓣̅ˢ .mapᵥ = map
 
 -- Naming convention: If both an unmarked and marked version
 -- of a term appears, one is named M and the other is named M̅.
@@ -137,46 +135,6 @@ mark (lam r) = ƛ mark r
     ⁀ mapₜ (appₗ_ ∘ lam_) (φred M)
     ⁀ begin _ to _ by red β
 
-private module _ where
-    open Hom
-    hmap : ∀ {𝒲} ⦃ 𝒲ᶜ : Weakening 𝒲 ⦄ (δ : [ 𝒲 => 𝓣̅ ])
-        {Γ Δ} {σ : (𝓥 => 𝒲) Γ Δ} {τ} (i : 𝓣̅ Γ τ)
-        -> ⌊ mapᵥ δ σ i ⌋ ≡ mapᵥ (⌊_⌋ ∘ δ) σ ⌊ i ⌋
-    hmap δ (v x) = refl
-    hmap δ (ƛ i) = cong ^_ (hmap δ i)
-    hmap δ (ƛ̅ i) = cong ^_ (hmap δ i)
-    hmap δ {σ = σ} (i ∙ j)
-        rewrite hmap δ {σ = σ} i | hmap δ {σ = σ} j = refl
-
-    private instance
-        _ : ⦃ Stable 𝒞 ⦄ -> Weakening 𝒞
-        _ = 𝒞ʷ
-
-    H↕ : (δ : [ 𝓣̅ => 𝓣̅ ]) (δ' : [ 𝓣 => 𝓣 ])
-        -> (eq : ∀ Γ σ i -> ⌊ δ {Γ = Γ} {σ = σ} i ⌋ ≡ δ' ⌊ i ⌋)
-        -> (wk : ∀ {Γ Δ} (σ : (𝓥 => 𝓣̅) Γ Δ) {τ τ' : ⊤}
-            -> ⌊_⌋ ∘ (σ ʷ) ≡ (⌊_⌋ ∘ σ) ʷ)
-        -> ∀ {Γ Δ} {σ : (𝓥 => 𝓣̅) Γ Δ} {τ} (i : 𝓣̅ Γ τ)
-        -> ⌊ mapᵥ δ σ i ⌋ ≡ (mapᵥ δ' (⌊_⌋ ∘ σ)) ⌊ i ⌋
-    H↕ δ δ' eq wk (v x) = eq _ _ _
-    H↕ δ δ' eq wk {σ = σ} (ƛ t)
-        = cong ^_  -- This must be used for Agda unfolds ⊤ too eagerly, which hinders unification.
-            (transp (cong (\ u -> ⌊ mapᵥ δ (σ ʷ) t ⌋ ≡ mapᵥ δ' u ⌊ t ⌋)
-                (wk σ)) (H↕ δ δ' eq wk t))
-    H↕ δ δ' eq wk {σ = σ} (ƛ̅ t)
-        = cong ^_
-            (transp (cong (\ u -> ⌊ mapᵥ δ (σ ʷ) t ⌋ ≡ mapᵥ δ' u ⌊ t ⌋)
-                (wk σ)) (H↕ δ δ' eq wk t))
-    H↕ δ δ' eq wk {σ = σ} (t ∙ s)
-        rewrite H↕ δ δ' eq wk {σ = σ} t
-        | H↕ δ δ' eq wk {σ = σ} s = refl
-
-instance
-    Hom⌊⌋ : Hom 𝓣̅ 𝓣 ⌊_⌋
-    Hom⌊⌋ .Hvar = refl
-    Hom⌊⌋ .Hmapᵥ = hmap
-    Hom⌊⌋ .Hmap↕ = H↕
-
 -- Now we set off to define a reduction relation on Λ̅
 infix 2 _↝̅_ _⟶̅₁_ _⟶̅_
 data _↝̅_ {n} : Λ̅ n -> Λ̅ n -> Set where
@@ -193,7 +151,7 @@ data _⟶̅₁_ {n} : Λ̅ n -> Λ̅ n -> Set where
 infixr 9 l̅am_
 _⟶̅_ : Λ̅ n -> Λ̅ n -> Set
 _⟶̅_ = Trans _⟶̅₁_
-
+{-
 red₁⌊_⌋ : M̅ ⟶̅₁ N̅ -> ⌊ M̅ ⌋ ⟶₁ ⌊ N̅ ⌋
 red₁⌊_⌋ {M̅ = (ƛ M̅) ∙ N̅} (red β)
     rewrite (Hsubst𝕫/ N̅) M̅ = red β
@@ -203,3 +161,4 @@ red₁⌊ appₗ r ⌋ = appₗ red₁⌊ r ⌋
 red₁⌊ appᵣ r ⌋ = appᵣ red₁⌊ r ⌋
 red₁⌊ lam r ⌋ = lam red₁⌊ r ⌋
 red₁⌊ l̅am r ⌋ = lam red₁⌊ r ⌋
+-}
