@@ -20,15 +20,15 @@ infixr 10 ƛ_ ƛ̅_
 Λ̅ : List ⊤ -> Set
 Λ̅ Γ = 𝓣̅ Γ ⋆
 private
-    map : ⦃ Weakening 𝒲 ⦄ -> [ 𝒲 => 𝓣̅ ] -> {Γ Δ : List ⊤} -> (𝓥 => 𝒲) Γ Δ -> (𝓣̅ => 𝓣̅) Γ Δ
-    map 𝔳 δ (v i) = 𝔳 (δ i)
-    map 𝔳 δ (ƛ t) = ƛ map 𝔳 (δ ≪ _) t
-    map 𝔳 δ (ƛ̅ t) = ƛ̅ map 𝔳 (δ ≪ _) t
-    map 𝔳 δ (t ∙ s) = (map 𝔳 δ t) ∙ (map 𝔳 δ s)
+    map' : ⦃ Weakening 𝒲 ⦄ -> [ 𝒲 => 𝓣̅ ] -> {Γ Δ : List ⊤} -> (𝓥 => 𝒲) Γ Δ -> (𝓣̅ => 𝓣̅) Γ Δ
+    map' 𝔳 δ (v i) = 𝔳 (δ i)
+    map' 𝔳 δ (ƛ t) = ƛ map' 𝔳 (δ ≪ _) t
+    map' 𝔳 δ (ƛ̅ t) = ƛ̅ map' 𝔳 (δ ≪ _) t
+    map' 𝔳 δ (t ∙ s) = (map' 𝔳 δ t) ∙ (map' 𝔳 δ s)
 instance
     𝓣̅ˢ : Syntax 𝓣̅
     𝓣̅ˢ .var = v
-    𝓣̅ˢ .mapᵥ = map
+    𝓣̅ˢ .map = map'
 
 -- Naming convention: If both an unmarked and marked version
 -- of a term appears, one is named M and the other is named M̅.
@@ -151,14 +151,11 @@ data _⟶̅₁_ {n} : Λ̅ n -> Λ̅ n -> Set where
 infixr 9 l̅am_
 _⟶̅_ : Λ̅ n -> Λ̅ n -> Set
 _⟶̅_ = Trans _⟶̅₁_
-{-
+
 red₁⌊_⌋ : M̅ ⟶̅₁ N̅ -> ⌊ M̅ ⌋ ⟶₁ ⌊ N̅ ⌋
-red₁⌊_⌋ {M̅ = (ƛ M̅) ∙ N̅} (red β)
-    rewrite (Hsubst𝕫/ N̅) M̅ = red β
-red₁⌊_⌋ {M̅ = (ƛ̅ M̅) ∙ N̅} (red β̅)
-    rewrite (Hsubst𝕫/ N̅) M̅ = red β
+red₁⌊_⌋ {M̅ = (ƛ M̅) ∙ N̅} (red β) = {!   !}
+red₁⌊_⌋ {M̅ = (ƛ̅ M̅) ∙ N̅} (red β̅) = {!   !}
 red₁⌊ appₗ r ⌋ = appₗ red₁⌊ r ⌋
 red₁⌊ appᵣ r ⌋ = appᵣ red₁⌊ r ⌋
 red₁⌊ lam r ⌋ = lam red₁⌊ r ⌋
 red₁⌊ l̅am r ⌋ = lam red₁⌊ r ⌋
--}

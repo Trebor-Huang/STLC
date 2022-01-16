@@ -38,16 +38,16 @@ infixl 30 _⁺
 
 -- Defines a Syntax instance so we can seamlessly manipulate syntax with binding
 private
-    𝓣ˢmapᵥ : ⦃ Weakening 𝒲 ⦄
+    𝓣ˢmap : ⦃ Weakening 𝒲 ⦄
         -> [ 𝒲 => 𝓣 ]
         -> ⟦ 𝓥 => 𝒲 ==> 𝓣 => 𝓣 ⟧
-    𝓣ˢmapᵥ 𝑓 σ (v x) = 𝑓 (σ x)
-    𝓣ˢmapᵥ 𝑓 σ (^ t) = ^ 𝓣ˢmapᵥ 𝑓 (σ ≪ _) t
-    𝓣ˢmapᵥ 𝑓 σ (t ∙ s) = 𝓣ˢmapᵥ 𝑓 σ t ∙ 𝓣ˢmapᵥ 𝑓 σ s
+    𝓣ˢmap 𝑓 σ (v x) = 𝑓 (σ x)
+    𝓣ˢmap 𝑓 σ (^ t) = ^ 𝓣ˢmap 𝑓 (σ ≪ _) t
+    𝓣ˢmap 𝑓 σ (t ∙ s) = 𝓣ˢmap 𝑓 σ t ∙ 𝓣ˢmap 𝑓 σ s
 instance
     𝓣ˢ : Syntax 𝓣
     𝓣ˢ .var = v
-    𝓣ˢ .mapᵥ = 𝓣ˢmapᵥ
+    𝓣ˢ .map = 𝓣ˢmap
 
 private variable
     n : List ⊤
