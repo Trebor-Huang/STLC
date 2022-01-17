@@ -88,6 +88,41 @@ mark (lam r) = ƛ mark r
 ⌊mark_⌋ {M = M ∙ _} (appᵣ r) rewrite ⌊⌈ M ⌉⌋ | ⌊mark r ⌋ = refl
 ⌊mark_⌋ {M = ^ M} (lam r) rewrite ⌊mark r ⌋ = refl
 
+-- We prove that the ⌊_⌋ function is a Hom:
+private
+    instance
+        _ = Syntaxʷ ⦃ 𝓣̅ˢ ⦄
+        _ = Syntaxʷ ⦃ 𝓣ˢ ⦄
+
+    instance
+        Hom⌊⌋ : Hom ⌊_⌋
+        Hom⌊⌋ .Hvar = refl
+        Hom⌊⌋ .Hwed = Hwed'
+            where
+                Hwed' : ⦃ _ : Weakening 𝒲 ⦄ (δ : [ 𝒲 => 𝓣̅ ])
+                    -> ∀ {Γ Δ} (σ : (𝓥 => 𝒲) Γ Δ) {i} (t : 𝓣̅ Γ i)
+                    -> ⌊ map δ σ t ⌋ ≡ map (⌊_⌋ ∘ δ) σ ⌊ t ⌋
+                Hwed' δ σ (v x) = refl
+                Hwed' δ σ (ƛ t) rewrite Hwed' δ (σ ≪ _) t = refl
+                Hwed' δ σ (ƛ̅ t) rewrite Hwed' δ (σ ≪ _) t = refl
+                Hwed' δ σ (t ∙ s)
+                    rewrite Hwed' δ σ t | Hwed' δ σ s = refl
+        Hom⌊⌋ .Hpol δ δ' nat wk = Hpol'
+            where
+                Hpol' : ∀ {Γ Δ} (σ : (𝓥 => 𝓣̅) Γ Δ) {i} (t : 𝓣̅ Γ i)
+                    -> ⌊ map δ σ t ⌋ ≡ map δ' (⌊_⌋ ∘ σ) ⌊ t ⌋
+                Hpol' σ (v x) = nat (σ x)
+                Hpol' σ (ƛ t) = cong ^_ $
+                    transp (cong (λ u -> ⌊ map δ (σ ≪ _) t ⌋ ≡ map δ' u ⌊ t ⌋) $
+                        funext (wk σ)) $
+                    Hpol' (σ ≪ _) t
+                Hpol' σ (ƛ̅ t) = cong ^_ $
+                    transp (cong (λ u -> ⌊ map δ (σ ≪ _) t ⌋ ≡ map δ' u ⌊ t ⌋) $
+                        funext (wk σ)) $
+                    Hpol' (σ ≪ _) t
+                Hpol' σ (t ∙ s)
+                    rewrite Hpol' σ t | Hpol' σ s = refl
+
 -- We make a function that reduces all the marked redexes
 φ : Λ̅ n -> Λ n
 φ (v x) = v x
@@ -153,8 +188,16 @@ _⟶̅_ : Λ̅ n -> Λ̅ n -> Set
 _⟶̅_ = Trans _⟶̅₁_
 
 red₁⌊_⌋ : M̅ ⟶̅₁ N̅ -> ⌊ M̅ ⌋ ⟶₁ ⌊ N̅ ⌋
-red₁⌊_⌋ {M̅ = (ƛ M̅) ∙ N̅} (red β) = {!   !}
-red₁⌊_⌋ {M̅ = (ƛ̅ M̅) ∙ N̅} (red β̅) = {!   !}
+red₁⌊_⌋ {M̅ = (ƛ M̅) ∙ N̅} (red β)
+    = transp  -- We cannot rewrite by (Hsubst𝕫/_ N̅ M̅) because ⊤ get eta-expanded
+        (cong ((^ ⌊ M̅ ⌋) ∙ ⌊ N̅ ⌋ ⟶₁_) $
+            symm $ Hsubst𝕫/_ N̅ M̅) $
+        red β
+red₁⌊_⌋ {M̅ = (ƛ̅ M̅) ∙ N̅} (red β̅)
+    = transp
+        (cong ((^ ⌊ M̅ ⌋) ∙ ⌊ N̅ ⌋ ⟶₁_) $
+            symm $ Hsubst𝕫/_ N̅ M̅) $
+        red β
 red₁⌊ appₗ r ⌋ = appₗ red₁⌊ r ⌋
 red₁⌊ appᵣ r ⌋ = appᵣ red₁⌊ r ⌋
 red₁⌊ lam r ⌋ = lam red₁⌊ r ⌋

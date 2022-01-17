@@ -69,6 +69,14 @@ _∘_ : ∀ {ℓ ℓ' ℓ''}
 (g ∘ f) x = g (f x)
 {-# INLINE _∘_ #-}
 
+infixr -1 _$_
+_$_ : ∀ {ℓ ℓ'}
+    -> {A : Set ℓ} {B : A -> Set ℓ'}
+    -> (f : (a : A) -> B a) (a : A)
+    -> B a
+f $ a = f a
+{-# INLINE _$_ #-}
+
 -- Transitive closure
 data Trans {ℓ ℓ'} {A : Set ℓ} (_~>_ : A -> A -> Set ℓ') : A -> A -> Set (ℓ ⊔ ℓ') where
     begin_ : (M : A) -> Trans _ M M
