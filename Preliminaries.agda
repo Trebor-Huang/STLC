@@ -32,7 +32,7 @@ transp refl a = a
 data List {ℓ} (A : Set ℓ) : Set ℓ where
     ∅ : List A
     _◂_ : List A -> A -> List A
-infixr 10 _◂_
+infixl 10 _◂_
 
 data _×_ {ℓ ℓ'} (A : Set ℓ) (B : Set ℓ') : Set (ℓ ⊔ ℓ') where
     ⟨_,_⟩ : A -> B -> A × B

@@ -202,3 +202,6 @@ red₁⌊ appₗ r ⌋ = appₗ red₁⌊ r ⌋
 red₁⌊ appᵣ r ⌋ = appᵣ red₁⌊ r ⌋
 red₁⌊ lam r ⌋ = lam red₁⌊ r ⌋
 red₁⌊ l̅am r ⌋ = lam red₁⌊ r ⌋
+
+red⌊_⌋ : M̅ ⟶̅ N̅ -> ⌊ M̅ ⌋ ⟶ ⌊ N̅ ⌋
+red⌊_⌋ = mapₜ red₁⌊_⌋
